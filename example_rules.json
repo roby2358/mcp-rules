@@ -1,0 +1,118 @@
+{
+  "rules": [
+    {
+      "name": "high_value_order",
+      "description": "Detect high-value orders that need special handling",
+      "rule": {
+        ">": [
+          {"var": "order.total"},
+          1000
+        ]
+      },
+      "actions": [
+        "NotificationActions.send_email",
+        "BusinessActions.escalate_support"
+      ]
+    },
+    {
+      "name": "suspicious_login",
+      "description": "Detect suspicious login attempts",
+      "rule": {
+        "and": [
+          {"!=": [{"var": "login.country"}, {"var": "user.home_country"}]},
+          {">": [{"var": "login.failed_attempts"}, 3]}
+        ]
+      },
+      "actions": [
+        "SecurityActions.require_mfa",
+        "SecurityActions.create_incident",
+        "NotificationActions.send_sms"
+      ]
+    },
+    {
+      "name": "vip_customer",
+      "description": "Special handling for VIP customers",
+      "rule": {
+        "or": [
+          {"==": [{"var": "user.tier"}, "platinum"]},
+          {">": [{"var": "user.lifetime_value"}, 10000]}
+        ]
+      },
+      "actions": [
+        "BusinessActions.apply_discount",
+        "NotificationActions.send_email"
+      ]
+    },
+    {
+      "name": "low_inventory",
+      "description": "Alert when inventory is running low",
+      "rule": {
+        "and": [
+          {"<": [{"var": "inventory.current"}, {"var": "inventory.threshold"}]},
+          {"==": [{"var": "inventory.auto_reorder"}, true]}
+        ]
+      },
+      "actions": [
+        "BusinessActions.update_inventory",
+        "NotificationActions.log_event"
+      ]
+    },
+    {
+      "name": "fraud_detection",
+      "description": "Detect potential fraudulent activity",
+      "rule": {
+        "or": [
+          {">": [{"var": "transaction.amount"}, {"var": "user.daily_limit"}]},
+          {"!=": [{"var": "transaction.ip_country"}, {"var": "user.country"}]},
+          {"in": [{"var": "transaction.card_number"}, {"var": "blacklist.cards"}]}
+        ]
+      },
+      "actions": [
+        "SecurityActions.block_user",
+        "SecurityActions.create_incident",
+        "NotificationActions.send_email"
+      ]
+    },
+    {
+      "name": "age_verification",
+      "description": "Verify user age for restricted content",
+      "rule": {
+        "and": [
+          {"==": [{"var": "content.age_restricted"}, true]},
+          {"<": [{"var": "user.age"}, 18]}
+        ]
+      },
+      "actions": [
+        "SecurityActions.block_user",
+        "NotificationActions.log_event"
+      ]
+    },
+    {
+      "name": "bulk_discount",
+      "description": "Apply bulk discount for large orders",
+      "rule": {
+        "and": [
+          {">": [{"var": "order.quantity"}, 50]},
+          {"==": [{"var": "user.type"}, "business"]}
+        ]
+      },
+      "actions": [
+        "BusinessActions.apply_discount"
+      ]
+    },
+    {
+      "name": "support_escalation",
+      "description": "Escalate support tickets based on priority and customer tier",
+      "rule": {
+        "and": [
+          {">=": [{"var": "ticket.priority"}, 8]},
+          {"in": [{"var": "user.tier"}, ["gold", "platinum"]]}
+        ]
+      },
+      "actions": [
+        "BusinessActions.escalate_support",
+        "NotificationActions.send_email"
+      ]
+    }
+  ]
+} 
